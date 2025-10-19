@@ -1,6 +1,9 @@
 module challenge::hero;
 
 use std::string::String;
+use sui::object;
+use sui::transfer;
+use sui::tx_context::{TxContext, sender, epoch_timestamp_ms};
 
 // ========= STRUCTS =========
 public struct Hero has key, store {
@@ -19,16 +22,25 @@ public struct HeroMetadata has key, store {
 
 #[allow(lint(self_transfer))]
 public fun create_hero(name: String, image_url: String, power: u64, ctx: &mut TxContext) {
-    
-    // TODO: Create a new Hero struct with the given parameters
-        // Hints:
-        // Use object::new(ctx) to create a unique ID
-        // Set name, image_url, and power fields
-    // TODO: Transfer the hero to the transaction sender
-    // TODO: Create HeroMetadata and freeze it for tracking
-        // Hints:
-        // Use ctx.epoch_timestamp_ms() for timestamp
-    //TODO: Use transfer::freeze_object() to make metadata immutable
+    // 1️⃣ Yeni Hero oluştur
+    let hero = Hero {
+        id: object::new(ctx),
+        name,
+        image_url,
+        power,
+    };
+
+    // 2️⃣ Hero’yu işlemi yapan adrese gönder
+    transfer::public_transfer(hero, sender(ctx));
+
+    // 3️⃣ Metadata oluştur
+    let metadata = HeroMetadata {
+        id: object::new(ctx),
+        timestamp: epoch_timestamp_ms(ctx),
+    };
+
+    // 4️⃣ Metadata’yı dondur (değiştirilemez hale getir)
+    transfer::freeze_object(metadata);
 }
 
 // ========= GETTER FUNCTIONS =========
@@ -51,4 +63,3 @@ public fun hero_image_url(hero: &Hero): String {
 public fun hero_id(hero: &Hero): ID {
     object::id(hero)
 }
-
