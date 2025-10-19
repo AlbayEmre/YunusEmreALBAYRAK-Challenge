@@ -57,7 +57,7 @@ export default function SharedObjects({ refreshKey, setRefreshKey }: RefreshProp
   const { data, isPending, error } = useSuiClientQuery(
     "multiGetObjects",
     {
-      ids: listedEvents?.data?.map(event => (event.parsedJson as any).list_hero_id) || [],
+      ids: listedEvents?.data?.map(event => (event.parsedJson as { list_hero_id: string }).list_hero_id) || [],
       options: {
         showContent: true,
         showType: true
@@ -65,7 +65,7 @@ export default function SharedObjects({ refreshKey, setRefreshKey }: RefreshProp
     },
     {
       enabled: !!packageId && listedEvents?.data !== undefined,
-      queryKey: ["multiGetObjects", listedEvents?.data?.map(event => (event.parsedJson as any).list_hero_id), refreshKey],
+      queryKey: ["multiGetObjects", listedEvents?.data?.map(event => (event.parsedJson as { list_hero_id: string }).list_hero_id), refreshKey],
     }
   );
 
@@ -202,8 +202,8 @@ export default function SharedObjects({ refreshKey, setRefreshKey }: RefreshProp
       ) : (
         <Grid columns="3" gap="4">
           {listedHeroes.map((obj) => {
-            const listHero = obj.data?.content as any;
-            const listHeroId = obj.data?.objectId!;
+            const listHero = obj.data?.content as unknown as { fields: ListHero };
+            const listHeroId = obj.data?.objectId;
             const fields = listHero.fields as ListHero;
             const heroFields = fields.nft.fields;
             const priceInSui = Number(fields.price) / 1_000_000_000;
@@ -246,14 +246,14 @@ export default function SharedObjects({ refreshKey, setRefreshKey }: RefreshProp
 
                   {/* Buy Button - Anyone can buy including owner */}
                   <Button 
-                    onClick={() => handleBuy(listHeroId, priceInSui.toString())}
-                    disabled={!account || isBuying[listHeroId]}
-                    loading={isBuying[listHeroId]}
+                    onClick={() => listHeroId && handleBuy(listHeroId, priceInSui.toString())}
+                    disabled={!account || !!(listHeroId && isBuying[listHeroId])}
+                    loading={!!(listHeroId && isBuying[listHeroId])}
                     color="green"
                   >
                     {!account 
                       ? "Connect Wallet to Buy" 
-                      : isBuying[listHeroId]
+                      : listHeroId && isBuying[listHeroId]
                         ? "Buying..."
                         : `Buy for ${priceInSui.toFixed(2)} SUI`
                     }
@@ -289,14 +289,14 @@ export default function SharedObjects({ refreshKey, setRefreshKey }: RefreshProp
                                 Remove this hero from the marketplace
                               </Text>
                               <Button 
-                                onClick={() => handleDelist(listHeroId)}
-                                disabled={isDelisting[listHeroId]}
-                                loading={isDelisting[listHeroId]}
+                                onClick={() => listHeroId && handleDelist(listHeroId)}
+                                disabled={!listHeroId || isDelisting[listHeroId]}
+                                loading={!!(listHeroId && isDelisting[listHeroId])}
                                 color="red"
                                 size="2"
                                 style={{ width: "100%" }}
                               >
-                                {isDelisting[listHeroId] ? "Delisting..." : "Delist Hero"}
+                                {listHeroId && isDelisting[listHeroId] ? "Delisting..." : "Delist Hero"}
                               </Button>
                             </Flex>
                           </Tabs.Content>
@@ -310,21 +310,21 @@ export default function SharedObjects({ refreshKey, setRefreshKey }: RefreshProp
                                 placeholder="Enter new price in SUI"
                                 type="number"
                                 size="2"
-                                value={newPrice[listHeroId] || ""}
+                                value={listHeroId && newPrice[listHeroId] || ""}
                                 onChange={(e) => setNewPrice(prev => ({
                                   ...prev,
-                                  [listHeroId]: e.target.value
+                                  [listHeroId!]: e.target.value
                                 }))}
                               />
                               <Button 
-                                onClick={() => handleChangePrice(listHeroId, newPrice[listHeroId])}
-                                disabled={!newPrice[listHeroId]?.trim() || isChangingPrice[listHeroId]}
-                                loading={isChangingPrice[listHeroId]}
+                                onClick={() => listHeroId && handleChangePrice(listHeroId, newPrice[listHeroId])}
+                                disabled={!listHeroId || !newPrice[listHeroId]?.trim() || isChangingPrice[listHeroId]}
+                                loading={!!(listHeroId && isChangingPrice[listHeroId])}
                                 color="orange"
                                 size="2"
                                 style={{ width: "100%" }}
                               >
-                                {isChangingPrice[listHeroId] ? "Updating Price..." : "Update Price"}
+                                {listHeroId && isChangingPrice[listHeroId] ? "Updating Price..." : "Update Price"}
                               </Button>
                             </Flex>
                           </Tabs.Content>

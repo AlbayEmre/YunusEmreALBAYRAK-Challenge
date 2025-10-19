@@ -71,7 +71,7 @@ export default function Arenas({ refreshKey, setRefreshKey }: RefreshProps) {
     "multiGetObjects",
     {
       ids:
-        battleEvents?.data?.map((event) => (event.parsedJson as any).arena_id) || [],
+        battleEvents?.data?.map((event) => (event.parsedJson as { arena_id: string }).arena_id) || [],
       options: {
         showContent: true,
         showType: true,
@@ -82,7 +82,7 @@ export default function Arenas({ refreshKey, setRefreshKey }: RefreshProps) {
       queryKey: [
         "multiGetObjects",
         "Arenas",
-        battleEvents?.data?.map((event) => (event.parsedJson as any).arena_id),
+        battleEvents?.data?.map((event) => (event.parsedJson as { arena_id: string }).arena_id),
         refreshKey,
       ],
     },
@@ -182,8 +182,8 @@ export default function Arenas({ refreshKey, setRefreshKey }: RefreshProps) {
       ) : (
         <Grid columns="3" gap="4">
           {activeArenas.map((obj) => {
-            const arena = obj.data?.content as any;
-            const arenaId = obj.data?.objectId!;
+            const arena = obj.data?.content as unknown as { fields: Arena };
+            const arenaId = obj.data?.objectId;
             const fields = arena.fields as Arena;
             const warriorFields = fields.warrior.fields as Hero;
 
@@ -233,8 +233,8 @@ export default function Arenas({ refreshKey, setRefreshKey }: RefreshProps) {
                         Challenge with your hero:
                       </Text>
                       {availableHeroes.slice(0, 3).map((heroObj) => {
-                        const heroContent = heroObj.data?.content as any;
-                        const heroId = heroObj.data?.objectId!;
+                        const heroContent = heroObj.data?.content as unknown as { fields: Hero };
+                        const heroId = heroObj.data?.objectId;
                         const heroFields = heroContent.fields as Hero;
                         const battleKey = `${arenaId}_${heroId}`;
                         const isMyArena = fields.owner === account.address;
@@ -245,7 +245,7 @@ export default function Arenas({ refreshKey, setRefreshKey }: RefreshProps) {
                               {heroFields.name} (Power: {heroFields.power})
                             </Text>
                             <Button
-                              onClick={() => handleBattle(arenaId, heroId)}
+                              onClick={() => arenaId && heroId && handleBattle(arenaId, heroId)}
                               disabled={isBattling[battleKey]}
                               loading={isBattling[battleKey]}
                               color={isMyArena ? "gray" : "orange"}

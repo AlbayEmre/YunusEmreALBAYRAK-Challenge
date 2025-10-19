@@ -196,8 +196,8 @@ export function OwnedObjects({ refreshKey, setRefreshKey }: RefreshProps) {
       ) : (
         <Grid columns="3" gap="4">
           {heroes.map((obj) => {
-            const hero = obj.data?.content as any;
-            const heroId = obj.data?.objectId!;
+            const hero = obj.data?.content as unknown as { fields: Hero };
+            const heroId = obj.data?.objectId;
             const fields = hero.fields as Hero;
 
             return (
@@ -232,15 +232,15 @@ export function OwnedObjects({ refreshKey, setRefreshKey }: RefreshProps) {
                           fontFamily: "monospace",
                         }}
                       >
-                        {heroId.slice(0, 6)}...{heroId.slice(-6)}
+                        {heroId && <>{heroId.slice(0, 6)}...{heroId.slice(-6)}</>}
                       </Text>
                       <Button
                         size="1"
                         variant="ghost"
-                        onClick={() => copyToClipboard(heroId, heroId)}
-                        color={copiedStates[heroId] ? "green" : undefined}
+                        onClick={() => heroId && copyToClipboard(heroId, heroId)}
+                        color={heroId && copiedStates[heroId] ? "green" : undefined}
                       >
-                        {copiedStates[heroId] ? "Copied!" : "Copy"}
+                        {heroId && copiedStates[heroId] ? "Copied!" : "Copy"}
                       </Button>
                     </Flex>
                   </Flex>
@@ -257,26 +257,26 @@ export function OwnedObjects({ refreshKey, setRefreshKey }: RefreshProps) {
                       <Flex direction="column" gap="2" mt="3">
                         <TextField.Root
                           placeholder="Recipient address"
-                          value={transferAddress[heroId] || ""}
+                          value={heroId && transferAddress[heroId] || ""}
                           onChange={(e) =>
                             setTransferAddress((prev) => ({
                               ...prev,
-                              [heroId]: e.target.value,
+                              [heroId!]: e.target.value,
                             }))
                           }
                         />
                         <Button
                           onClick={() =>
-                            handleTransfer(heroId, transferAddress[heroId])
+                            heroId && handleTransfer(heroId, transferAddress[heroId])
                           }
                           disabled={
-                            !transferAddress[heroId]?.trim() ||
+                            !heroId || !transferAddress[heroId]?.trim() ||
                             isTransferring[heroId]
                           }
-                          loading={isTransferring[heroId]}
+                          loading={!!(heroId && isTransferring[heroId])}
                           color="blue"
                         >
-                          {isTransferring[heroId]
+                          {heroId && isTransferring[heroId]
                             ? "Transferring..."
                             : "Transfer Hero"}
                         </Button>
@@ -288,23 +288,23 @@ export function OwnedObjects({ refreshKey, setRefreshKey }: RefreshProps) {
                         <TextField.Root
                           placeholder="Price in SUI"
                           type="number"
-                          value={listPrice[heroId] || ""}
+                          value={heroId && listPrice[heroId] || ""}
                           onChange={(e) =>
                             setListPrice((prev) => ({
                               ...prev,
-                              [heroId]: e.target.value,
+                              [heroId!]: e.target.value,
                             }))
                           }
                         />
                         <Button
-                          onClick={() => handleList(heroId, listPrice[heroId])}
+                          onClick={() => heroId && handleList(heroId, listPrice[heroId])}
                           disabled={
-                            !listPrice[heroId]?.trim() || isListing[heroId]
+                            !heroId || !listPrice[heroId]?.trim() || isListing[heroId]
                           }
-                          loading={isListing[heroId]}
+                          loading={!!(heroId && isListing[heroId])}
                           color="green"
                         >
-                          {isListing[heroId] ? "Listing..." : "List for Sale"}
+                          {heroId && isListing[heroId] ? "Listing..." : "List for Sale"}
                         </Button>
                       </Flex>
                     </Tabs.Content>
@@ -316,12 +316,12 @@ export function OwnedObjects({ refreshKey, setRefreshKey }: RefreshProps) {
                           your hero.
                         </Text>
                         <Button
-                          onClick={() => handleCreateBattle(heroId)}
-                          disabled={isCreatingBattle[heroId]}
-                          loading={isCreatingBattle[heroId]}
+                          onClick={() => heroId && handleCreateBattle(heroId)}
+                          disabled={!heroId || isCreatingBattle[heroId]}
+                          loading={!!(heroId && isCreatingBattle[heroId])}
                           color="orange"
                         >
-                          {isCreatingBattle[heroId]
+                          {heroId && isCreatingBattle[heroId]
                             ? "Creating Arena..."
                             : "Create Arena"}
                         </Button>

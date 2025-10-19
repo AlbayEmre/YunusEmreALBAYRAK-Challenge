@@ -120,7 +120,7 @@ export default function EventsHistory() {
       ) : (
         <Grid columns="1" gap="3">
           {allEvents.map((event, index) => {
-            const eventData = event.parsedJson as any;
+            const eventData = event.parsedJson as { [key: string]: string };
 
             return (
               <Card
